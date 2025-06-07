@@ -17,9 +17,9 @@ app.use(express.urlencoded({ extended: true }));
 // CORS 
 app.use(cors({
     origin: [
-        'https://bccgallery.netlify.app/', 
-        'https://bccgalleryadmin.netlify.app/'
-    ],
+        'https://bccgallery.netlify.app',
+        'https://bccgalleryadmin.netlify.app'
+      ],
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization']
