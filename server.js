@@ -1,0 +1,59 @@
+const express = require("express");
+const cors = require("cors");
+const app = express();
+const connectDB = require('./config/connectToDB');
+const userRouter = require("./route/userRoute");
+const imageRouter = require("./route/imagesRoute");
+const savedRouter = require("./route/savedRoute");
+const pastAlbumRouter = require("./route/pastAlbumRoute");
+
+
+connectDB();
+
+
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+// CORS 
+app.use(cors({
+    origin: ['http://localhost:5173', 
+        'http://127.0.0.1:5173',
+        'http://127.0.0.1:5173',   
+        'http://localhost:5500',    
+        'http://127.0.0.1:5500',   
+        'http://localhost:3000',    
+        'http://127.0.0.1:3000'
+
+    ],
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization']
+}));
+
+const port = 6500;
+
+// Health check 
+app.get("/health", (req, res) => {
+    res.status(200).json({ message: "Welcome to BCC Gallery", status: "healthy" });
+});
+
+// Routes
+app.use("/users", userRouter);
+app.use("/images", imageRouter);
+app.use("/saved", savedRouter);
+app.use("/album", pastAlbumRouter);
+
+// Error handling
+app.use((err, req, res, next) => {
+    console.error('Error:', err);
+    res.status(500).json({ error: 'Something went wrong!', details: err.message });
+});
+
+// 404 
+app.use('"/{*any}', (req, res) => {
+    res.status(404).json({ error: 'Route not found' });
+});
+
+app.listen(port, () => {
+    console.log(`Server running on http://localhost:${port}`);
+});
