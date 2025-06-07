@@ -16,14 +16,9 @@ app.use(express.urlencoded({ extended: true }));
 
 // CORS 
 app.use(cors({
-    origin: ['http://localhost:5173', 
-        'http://127.0.0.1:5173',
-        'http://127.0.0.1:5173',   
-        'http://localhost:5500',    
-        'http://127.0.0.1:5500',   
-        'http://localhost:3000',    
-        'http://127.0.0.1:3000'
-
+    origin: [
+        'https://bccgallery.netlify.app/', 
+        'https://bccgalleryadmin.netlify.app/'
     ],
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
