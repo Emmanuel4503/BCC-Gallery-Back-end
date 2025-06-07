@@ -1,114 +1,117 @@
         const Image = require('../model/imagesModel');
         const Reaction = require('../model/reactionModel');
    
-
-        // CREATE image with file upload
         const addImage = async (req, res) => {
-            try {
-              const { album, type } = req.body;
-          
-              if (!req.files || req.files.length === 0) {
-                return res.status(400).json({ message: "No image files uploaded." });
-              }
-          
-              const sharedTimestamp = new Date(); // exact timestamp for all images
-          
-              // Log the upload time (optional)
-              console.log('Batch upload time:', sharedTimestamp.toISOString());
-          
-              const imageDocs = req.files.map(file => ({
-                imageUrl: file.path,
-                album,
-                type,
-                createdAt: sharedTimestamp,
-                updatedAt: sharedTimestamp
-              }));
-          
-              const insertedImages = await Image.insertMany(imageDocs);
-          
-              res.status(201).json({
-                message: "Images uploaded successfully",
-                images: insertedImages,
-                batchTime: sharedTimestamp
-              });
-            } catch (err) {
-              res.status(500).json({ error: err.message });
+          try {
+            const { album, type } = req.body;
+        
+            if (!req.files || req.files.length === 0) {
+              return res.status(400).json({ message: "No image files uploaded." });
             }
-          };
-          
+        
+            if (!album || !type) {
+              return res.status(400).json({ message: "Album and type are required." });
+            }
+        
+            const sharedTimestamp = new Date();
+            console.log('Batch upload time:', sharedTimestamp.toISOString());
+        
+            const imageDocs = req.files.map(file => ({
+              imageUrl: file.path, // Original image URL from Cloudinary
+              thumbnailUrl: cloudinary.url(file.filename, {
+                transformation: [
+                  { width: 500, height: 500, crop: 'limit', quality: 'auto:good', fetch_format: 'auto' }
+                ]
+              }), // Thumbnail URL with transformations
+              publicId: file.filename, // Cloudinary public ID
+              album,
+              type,
+              createdAt: sharedTimestamp,
+              updatedAt: sharedTimestamp
+            }));
+        
+            const insertedImages = await Image.insertMany(imageDocs);
+        
+            res.status(201).json({
+              message: "Images uploaded successfully",
+              images: insertedImages,
+              batchTime: sharedTimestamp
+            });
+          } catch (err) {
+            console.error('Upload error:', err);
+            res.status(500).json({ error: err.message });
+          }
+        };
 
         const getImages = async (req, res) => {
-            try {
+          try {
             const { album, type, fields } = req.query;
         
             const query = {};
             if (album) query.album = album;
             if (type) query.type = type;
         
-            // Find the latest timestamp
             const latestImage = await Image.findOne(query).sort({ createdAt: -1 });
         
-            if (!latestImage) return res.status(200).json([]); // no images
+            if (!latestImage) return res.status(200).json([]);
         
-            // Find all images that match the latest createdAt timestamp
             const latestCreatedAt = latestImage.createdAt;
         
             let projection = '';
             if (fields) projection = fields.split(',').join(' ');
         
-            const latestImages = await Image.find({
-                ...query,
-                createdAt: latestCreatedAt
-            }, projection);
+            const latestImages = await Image.find(
+              { ...query, createdAt: latestCreatedAt },
+              projection || 'imageUrl thumbnailUrl album type reactions createdAt' // Include thumbnailUrl
+            );
         
             res.status(200).json(latestImages);
-            } catch (err) {
+          } catch (err) {
             res.status(500).json({ error: err.message });
-            }
+          }
         };
-        
 
         const getSelectedImages = async (req, res) => {
-            try {
+          try {
             const type = 'Selected';
         
-            // Find the latest createdAt for selected images
             const latestSelected = await Image.findOne({ type }).sort({ createdAt: -1 });
         
             if (!latestSelected) return res.status(200).json([]);
         
             const latestCreatedAt = latestSelected.createdAt;
         
-            const selectedImages = await Image.find({
-                type,
-                createdAt: latestCreatedAt
-            });
+            const selectedImages = await Image.find(
+              { type, createdAt: latestCreatedAt },
+              'imageUrl thumbnailUrl album type reactions createdAt' // Include thumbnailUrl
+            );
         
             res.status(200).json(selectedImages);
-            } catch (err) {
+          } catch (err) {
             res.status(500).json({ error: err.message });
-            }
+          }
         };
-        
 
 
-        // GET images by album (not filtered by latest)
+     
         const getImagesByAlbum = async (req, res) => {
-        try {
+          try {
             const { album } = req.params;
-
+        
             if (!album) {
-            return res.status(400).json({ message: "Album name is required" });
+              return res.status(400).json({ message: "Album name is required" });
             }
-
-            const images = await Image.find({ album });
-
+        
+            const images = await Image.find(
+              { album },
+              'imageUrl thumbnailUrl album type reactions createdAt' // Include thumbnailUrl
+            );
+        
             res.status(200).json(images);
-        } catch (err) {
+          } catch (err) {
             res.status(500).json({ error: err.message });
-        }
+          }
         };
-
 
        
         
@@ -125,18 +128,17 @@
                 return res.status(400).json({ error: 'Invalid reaction type.' });
               }
           
-              // Check if user has already reacted
+          
               const existingReaction = await Reaction.findOne({ userId: Number(userId), imageId });
           
               let updatedImage;
           
               if (existingReaction) {
                 if (existingReaction.reactionType === reaction) {
-                  // Same reaction: remove it (unreact)
                   await Reaction.deleteOne({ userId: Number(userId), imageId });
                   updatedImage = await Image.findByIdAndUpdate(
                     imageId,
-                    { $inc: { [`reactions.${reaction}`]: -1 } }, // Atomically decrement
+                    { $inc: { [`reactions.${reaction}`]: -1 } }, 
                     { new: true }
                   );
                   if (!updatedImage) {
@@ -144,15 +146,14 @@
                   }
                   return res.status(200).json({ message: 'Reaction removed.', reactions: updatedImage.reactions });
                 } else {
-                  // Different reaction: remove old reaction, add new one
                   const oldReaction = existingReaction.reactionType;
                   await Reaction.deleteOne({ userId: Number(userId), imageId });
                   updatedImage = await Image.findByIdAndUpdate(
                     imageId,
                     {
                       $inc: {
-                        [`reactions.${oldReaction}`]: -1, // Decrement old reaction
-                        [`reactions.${reaction}`]: 1, // Increment new reaction
+                        [`reactions.${oldReaction}`]: -1, 
+                        [`reactions.${reaction}`]: 1, 
                       },
                     },
                     { new: true }
@@ -165,11 +166,11 @@
                 }
               }
           
-              // No existing reaction: add new one
+            
               await Reaction.create({ userId: Number(userId), imageId, reactionType: reaction });
               updatedImage = await Image.findByIdAndUpdate(
                 imageId,
-                { $inc: { [`reactions.${reaction}`]: 1 } }, // Atomically increment
+                { $inc: { [`reactions.${reaction}`]: 1 } }, 
                 { new: true }
               );
           
@@ -224,7 +225,7 @@
         }
         };
 
-        // GET count of all images (optionally filtered by album or type)
+        
 const getImageCount = async (req, res) => {
   try {
     const { album, type } = req.query;
