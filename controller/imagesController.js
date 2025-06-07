@@ -3,46 +3,60 @@
    
         const addImage = async (req, res) => {
           try {
+            console.log('Received upload request:', { body: req.body, files: req.files?.map(f => f.originalname) });
             const { album, type } = req.body;
-        
             if (!req.files || req.files.length === 0) {
-              return res.status(400).json({ message: "No image files uploaded." });
+              return res.status(400).json({ message: 'No image files uploaded. Please select at least one image.' });
             }
-        
             if (!album || !type) {
-              return res.status(400).json({ message: "Album and type are required." });
+              return res.status(400).json({ message: 'Album title and image type are required.' });
             }
-        
+            if (!['Normal', 'Selected'].includes(type)) {
+              return res.status(400).json({ message: 'Invalid image type. Must be "Normal" or "Selected".' });
+            }
+            const maxSize = 5 * 1024 * 1024; // 5MB
+            const allowedFormats = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+            for (const file of req.files) {
+              if (!allowedFormats.includes(file.mimetype)) {
+                return res.status(400).json({ message: `File ${file.originalname} is not a supported type (JPEG, PNG, WebP).` });
+              }
+              if (file.size > maxSize) {
+                return res.status(400).json({ message: `File ${file.originalname} exceeds 5MB limit.` });
+              }
+            }
             const sharedTimestamp = new Date();
-            console.log('Batch upload time:', sharedTimestamp.toISOString());
-        
             const imageDocs = req.files.map(file => ({
-              imageUrl: file.path, // Original image URL from Cloudinary
+              imageUrl: file.path,
               thumbnailUrl: cloudinary.url(file.filename, {
                 transformation: [
                   { width: 500, height: 500, crop: 'limit', quality: 'auto:good', fetch_format: 'auto' }
                 ]
-              }), // Thumbnail URL with transformations
-              publicId: file.filename, // Cloudinary public ID
+              }),
+              publicId: file.filename,
               album,
               type,
               createdAt: sharedTimestamp,
               updatedAt: sharedTimestamp
             }));
-        
+            console.log('Inserting images to MongoDB:', imageDocs.length);
             const insertedImages = await Image.insertMany(imageDocs);
-        
+            console.log('Images uploaded successfully:', insertedImages.length);
             res.status(201).json({
-              message: "Images uploaded successfully",
+              message: `Successfully uploaded ${insertedImages.length} images`,
               images: insertedImages,
               batchTime: sharedTimestamp
             });
           } catch (err) {
-            console.error('Upload error:', err);
-            res.status(500).json({ error: err.message });
+            console.error('Upload error:', {
+              message: err.message,
+              stack: err.stack,
+              body: req.body,
+              files: req.files?.map(f => f.originalname)
+            });
+            res.status(500).json({ message: `Failed to upload images: ${err.message || 'Unknown error'}` });
           }
         };
-
+        
         const getImages = async (req, res) => {
           try {
             const { album, type, fields } = req.query;
