@@ -1,5 +1,6 @@
         const Image = require('../model/imagesModel');
         const Reaction = require('../model/reactionModel');
+        const cloudinary = require('../middlewares/cloudConfig');
    
         const addImage = async (req, res) => {
           try {
@@ -56,7 +57,7 @@
             res.status(500).json({ message: `Failed to upload images: ${err.message || 'Unknown error'}` });
           }
         };
-        
+
         const getImages = async (req, res) => {
           try {
             const { album, type, fields } = req.query;
