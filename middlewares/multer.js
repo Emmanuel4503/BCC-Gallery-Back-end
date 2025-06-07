@@ -12,8 +12,8 @@ const newStorage = new CloudinaryStorage({
           width: 500,
           height: 500,
           crop: "limit",
-          quality: "auto",
-          effect: "sharpen"
+          // quality: "auto",
+          // effect: "sharpen"
         }
       ]
            

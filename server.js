@@ -18,7 +18,8 @@ app.use(express.urlencoded({ extended: true }));
 app.use(cors({
     origin: [
         'https://bccgallery.netlify.app',
-        'https://bccgalleryadmin.netlify.app'
+        'https://bccgalleryadmin.netlify.app',
+
       ],
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
@@ -50,5 +51,5 @@ app.use('"/{*any}', (req, res) => {
 });
 
 app.listen(port, () => {
-    console.log(`Server running on http://localhost:${port}`);
+    console.log(`Server running`);
 });
