@@ -5,6 +5,9 @@
         const addImage = async (req, res) => {
           try {
             console.log('Received upload request:', { body: req.body, files: req.files?.map(f => f.originalname) });
+            if (!cloudinary) {
+              throw new Error('Cloudinary is not initialized');
+            }
             const { album, type } = req.body;
             if (!req.files || req.files.length === 0) {
               return res.status(400).json({ message: 'No image files uploaded. Please select at least one image.' });
