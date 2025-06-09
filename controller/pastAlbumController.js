@@ -17,27 +17,24 @@ const addPastAlbum = async (req, res) => {
 };
 
 
-const getPastAlbums = async (req, res) => {
+const getAlbumImages = async (req, res) => {
   try {
-    const albums = await PastAlbum.find().sort({ createdAt: -1 });
-    // Validate and sanitize album data
-    const sanitizedAlbums = albums
-      .filter((album) => album && album.title && typeof album.title === 'string')
-      .map((album) => ({
-        _id: album._id,
-        title: album.title.trim(),
-        createdAt: album.createdAt,
-        // Include other relevant fields if needed
-      }));
-    if (sanitizedAlbums.length === 0) {
-      return res.status(404).json({ error: 'No valid albums found' });
+    const { albumTitle } = req.params;
+    if (!albumTitle) {
+      return res.status(400).json({ error: 'Invalid album title' });
     }
-    // Set caching headers
-    res.set('Cache-Control', 'public, max-age=604800'); // Cache for 7 days
-    res.status(200).json(sanitizedAlbums);
+    const album = await PastAlbum.findOne({ title: albumTitle }).select('images');
+    if (!album || !album.images || !Array.isArray(album.images)) {
+      return res.status(404).json({ error: 'No images found for this album' });
+    }
+    const images = album.images.map((image, index) => ({
+      imageUrl: image.url || `https://bcc-gallery-back-end.onrender.com/images/${albumTitle}/${index}`,
+    }));
+    res.set('Cache-Control', 'public, max-age=604800');
+    res.status(200).json(images);
   } catch (err) {
-    console.error('Error fetching past albums:', err.message);
-    res.status(500).json({ error: `Failed to fetch albums: ${err.message}` });
+    console.error(`Error fetching images for album ${albumTitle}:`, err.message);
+    res.status(500).json({ error: `Failed to fetch images: ${err.message}` });
   }
 };
 
