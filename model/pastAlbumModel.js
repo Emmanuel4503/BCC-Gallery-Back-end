@@ -1,4 +1,4 @@
-// models/PastAlbum.js
+
 const mongoose = require('mongoose');
 
 const pastAlbumSchema = new mongoose.Schema({

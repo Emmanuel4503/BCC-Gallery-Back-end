@@ -115,17 +115,23 @@
         const getImagesByAlbum = async (req, res) => {
           try {
             const { album } = req.params;
-        
+            
             if (!album) {
               return res.status(400).json({ message: "Album name is required" });
             }
-        
+            
             const images = await Image.find(
               { album },
-              'imageUrl thumbnailUrl album type reactions createdAt' // Include thumbnailUrl
+              'imageUrl thumbnailUrl album type reactions createdAt'
             );
-        
-            res.status(200).json(images);
+            
+            // If no thumbnails exist, you can generate them or use original
+            const processedImages = images.map(image => ({
+              ...image.toObject(),
+              thumbnailUrl: image.thumbnailUrl || image.imageUrl // fallback to original
+            }));
+            
+            res.status(200).json(processedImages);
           } catch (err) {
             res.status(500).json({ error: err.message });
           }

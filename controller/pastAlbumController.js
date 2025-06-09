@@ -1,6 +1,6 @@
 const PastAlbum = require('../model/pastAlbumModel');
 
-
+// Add a past album
 const addPastAlbum = async (req, res) => {
   try {
     const { title } = req.body;
@@ -16,25 +16,13 @@ const addPastAlbum = async (req, res) => {
   }
 };
 
-
-const getAlbumImages = async (req, res) => {
+// Get all past albums
+const getPastAlbums = async (req, res) => {
   try {
-    const { albumTitle } = req.params;
-    if (!albumTitle) {
-      return res.status(400).json({ error: 'Invalid album title' });
-    }
-    const album = await PastAlbum.findOne({ title: albumTitle }).select('images');
-    if (!album || !album.images || !Array.isArray(album.images)) {
-      return res.status(404).json({ error: 'No images found for this album' });
-    }
-    const images = album.images.map((image, index) => ({
-      imageUrl: image.url || `https://bcc-gallery-back-end.onrender.com/images/${albumTitle}/${index}`,
-    }));
-    res.set('Cache-Control', 'public, max-age=604800');
-    res.status(200).json(images);
+    const albums = await PastAlbum.find().sort({ createdAt: -1 });
+    res.status(200).json(albums);
   } catch (err) {
-    console.error(`Error fetching images for album ${albumTitle}:`, err.message);
-    res.status(500).json({ error: `Failed to fetch images: ${err.message}` });
+    res.status(500).json({ error: err.message });
   }
 };
 
@@ -53,13 +41,13 @@ const deletePastAlbum = async (req, res) => {
   }
 };
 
-
+// Get the latest album based on createdAt timestamp
 const getLatestAlbum = async (req, res) => {
   try {
-  
+    // Find the album with the latest createdAt timestamp
     const latestAlbum = await PastAlbum.findOne().sort({ createdAt: -1 });
 
-    if (!latestAlbum) return res.status(200).json(null); 
+    if (!latestAlbum) return res.status(200).json(null); // No albums found
 
     res.status(200).json(latestAlbum);
   } catch (err) {
