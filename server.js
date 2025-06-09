@@ -23,7 +23,7 @@ app.use(cors({
       ],
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization']
+    allowedHeaders: ['Content-Type', 'Authorization', 'Cache-Control']
 }));
 
 const port = 6500;
