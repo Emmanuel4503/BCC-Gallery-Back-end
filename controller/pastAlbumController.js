@@ -20,9 +20,24 @@ const addPastAlbum = async (req, res) => {
 const getPastAlbums = async (req, res) => {
   try {
     const albums = await PastAlbum.find().sort({ createdAt: -1 });
-    res.status(200).json(albums);
+    // Validate and sanitize album data
+    const sanitizedAlbums = albums
+      .filter((album) => album && album.title && typeof album.title === 'string')
+      .map((album) => ({
+        _id: album._id,
+        title: album.title.trim(),
+        createdAt: album.createdAt,
+        // Include other relevant fields if needed
+      }));
+    if (sanitizedAlbums.length === 0) {
+      return res.status(404).json({ error: 'No valid albums found' });
+    }
+    // Set caching headers
+    res.set('Cache-Control', 'public, max-age=604800'); // Cache for 7 days
+    res.status(200).json(sanitizedAlbums);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error('Error fetching past albums:', err.message);
+    res.status(500).json({ error: `Failed to fetch albums: ${err.message}` });
   }
 };
 
