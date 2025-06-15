@@ -18,14 +18,14 @@
             if (!['Normal', 'Selected'].includes(type)) {
               return res.status(400).json({ message: 'Invalid image type. Must be "Normal" or "Selected".' });
             }
-            const maxSize = 20 * 1024 * 1024; // 20MB
+            const maxSize = 50 * 1024 * 1024; // 20MB
             const allowedFormats = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
             for (const file of req.files) {
               if (!allowedFormats.includes(file.mimetype)) {
                 return res.status(400).json({ message: `File ${file.originalname} is not a supported type (JPEG, PNG, WebP).` });
               }
               if (file.size > maxSize) {
-                return res.status(400).json({ message: `File ${file.originalname} exceeds 10MB limit.` });
+                return res.status(400).json({ message: `File ${file.originalname} exceeds 50MB limit.` });
               }
             }
             const sharedTimestamp = new Date();
