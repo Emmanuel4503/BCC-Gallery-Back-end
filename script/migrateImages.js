@@ -1,6 +1,6 @@
-const mongoose = require("mongoose");
-const Image = require("../model/imagesModel");
-const cloudinary = require("./cloudConfig");
+const mongoose = require('mongoose');
+const Image = require('../model/imagesModel');
+const cloudinary = require('./cloudConfig');
 
 // Ensure MongoDB connection
 const connectDB = async () => {
@@ -9,9 +9,9 @@ const connectDB = async () => {
       useNewUrlParser: true,
       useUnifiedTopology: true,
     });
-    console.log("MongoDB connected for migration");
+    console.log('MongoDB connected for migration');
   } catch (err) {
-    console.error("MongoDB connection error:", err);
+    console.error('MongoDB connection error:', err);
     process.exit(1);
   }
 };
@@ -22,13 +22,12 @@ const migrateImages = async () => {
     const images = await Image.find({});
 
     if (images.length === 0) {
-      console.log("No images found to migrate");
+      console.log('No images found to migrate');
       return;
     }
 
     let updatedCount = 0;
     let skippedCount = 0;
-    let failedCount = 0;
 
     for (const image of images) {
       try {
@@ -40,42 +39,20 @@ const migrateImages = async () => {
         }
 
         // Extract publicId from imageUrl
-        let publicId;
-        if (image.imageUrl.includes("res.cloudinary.com")) {
-          const urlParts = image.imageUrl.split("/");
-          const index = urlParts.indexOf("upload");
-          if (index !== -1 && urlParts.length > index + 2) {
-            publicId = urlParts.slice(index + 2).join("/").split(".")[0];
-          }
+        const urlParts = image.imageUrl.split('/');
+        const filename = urlParts[urlParts.length - 1]?.split('.')[0];
+        if (!filename) {
+          console.error(`Invalid imageUrl for image ${image._id}: ${image.imageUrl}`);
+          continue;
         }
-
-        if (!publicId) {
-          // Fallback: Generate publicId based on filename or timestamp
-          const filename = image.imageUrl.split("/").pop()?.split(".")[0] || `image-${image._id}`;
-          publicId = `BCC Gallery Images/${filename}`;
-          console.warn(`Generated publicId for image ${image._id}: ${publicId}`);
-        }
+        const publicId = `BCC Gallery Images/${filename}`;
 
         // Generate thumbnailUrl
         const thumbnailUrl = cloudinary.url(publicId, {
-          secure: true, // Ensure HTTPS
           transformation: [
-            {
-              width: 500,
-              height: 500,
-              crop: "limit",
-              quality: "auto:good",
-              fetch_format: "auto",
-            },
+            { width: 500, height: 500, crop: 'limit', quality: 'auto:good', fetch_format: 'auto' },
           ],
         });
-
-        // Verify URLs
-        if (!thumbnailUrl.startsWith("https://res.cloudinary.com")) {
-          console.error(`Invalid thumbnailUrl for image ${image._id}: ${thumbnailUrl}`);
-          failedCount++;
-          continue;
-        }
 
         // Update the image document
         await Image.findByIdAndUpdate(
@@ -87,21 +64,18 @@ const migrateImages = async () => {
           { new: true }
         );
         updatedCount++;
-        console.log(`Updated image ${image._id}: ${thumbnailUrl}`);
+        console.log(`Updated image ${image._id}`);
       } catch (err) {
         console.error(`Failed to migrate image ${image._id}:`, err.message);
-        failedCount++;
       }
     }
 
-    console.log(
-      `Migration completed: ${updatedCount} images updated, ${skippedCount} skipped, ${failedCount} failed`
-    );
+    console.log(`Migration completed: ${updatedCount} images updated, ${skippedCount} skipped, ${images.length - updatedCount - skippedCount} failed`);
   } catch (err) {
-    console.error("Migration error:", err);
+    console.error('Migration error:', err);
   } finally {
     await mongoose.connection.close();
-    console.log("MongoDB connection closed");
+    console.log('MongoDB connection closed');
   }
 };
 
