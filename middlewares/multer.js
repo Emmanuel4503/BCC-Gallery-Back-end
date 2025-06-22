@@ -6,10 +6,10 @@ try {
   const storage = new CloudinaryStorage({
     cloudinary: cloudinary,
     params: {
-      folder: "BCC Gallery Images",
-      allowed_formats: ["jpeg", "png", "jpg", "webp"],
+        folder: 'BCC Gallery Images',
+        allowed_formats: ['jpeg', 'png', 'jpg', 'webp', 'gif'],
     },
-  });
+});
 
   const uploadImage = multer({ storage });
   console.log('Multer instance created:', uploadImage);
