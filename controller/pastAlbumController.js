@@ -29,7 +29,7 @@ const getPastAlbums = async (req, res) => {
 // Delete a past album by ID
 const deletePastAlbum = async (req, res) => {
   try {
-    const { id } = req.body;
+    const { id } = req.params; // Get ID from URL parameters
     if (!id) return res.status(400).json({ error: 'Album ID is required' });
 
     const deleted = await PastAlbum.findByIdAndDelete(id);

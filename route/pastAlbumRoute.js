@@ -15,7 +15,7 @@ pastAlbumRouter.post("/add", addPastAlbum);
 pastAlbumRouter.get("/get", getPastAlbums);
 
 // Route to delete a past album by ID
-pastAlbumRouter.delete("/delete", deletePastAlbum);
+pastAlbumRouter.delete("/delete/:id", deletePastAlbum);
 
 pastAlbumRouter.get('/latest', getLatestAlbum);
 
