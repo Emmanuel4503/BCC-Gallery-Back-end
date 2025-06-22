@@ -2,18 +2,13 @@ const express = require("express");
 const cors = require("cors");
 const app = express();
 const connectDB = require('./config/connectToDB');
-const userRouter = require("./route/userRoute");
-const imageRouter = require("./route/imagesRoute");
-const savedRouter = require("./route/savedRoute");
-const pastAlbumRouter = require("./route/pastAlbumRoute");
-
 
 connectDB();
 
 
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-
 // CORS 
 app.use(cors({
     origin: [
@@ -25,6 +20,15 @@ app.use(cors({
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'Cache-Control']
 }));
+
+const userRouter = require("./route/userRoute");
+const imageRouter = require("./route/imagesRoute");
+const savedRouter = require("./route/savedRoute");
+const pastAlbumRouter = require("./route/pastAlbumRoute");
+
+
+
+
 
 const port = 6500;
 
