@@ -14,7 +14,6 @@ app.use(cors({
     origin: [
         'https://bccgallery.netlify.app',
         'https://bccgalleryadmin.netlify.app',
-
       ],
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
