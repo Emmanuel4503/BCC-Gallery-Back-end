@@ -18,7 +18,7 @@
             if (!['Normal', 'Selected'].includes(type)) {
               return res.status(400).json({ message: 'Invalid image type. Must be "Normal" or "Selected".' });
             }
-            const maxSize = 10 * 1024 * 1024; // 10MB
+            const maxSize = 20 * 1024 * 1024; // 10MB
             const allowedFormats = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
             for (const file of req.files) {
               if (!allowedFormats.includes(file.mimetype)) {
