@@ -1,17 +1,42 @@
 const PastAlbum = require('../model/pastAlbumModel');
 
 // Add a past album
+// Add a past album
 const addPastAlbum = async (req, res) => {
   try {
     const { title } = req.body;
     if (!title) return res.status(400).json({ error: 'Title is required' });
 
-    const exists = await PastAlbum.findOne({ title });
-    if (exists) return res.status(409).json({ error: 'Album already exists' });
+    // Check if album exists
+    const existingAlbum = await PastAlbum.findOne({ title });
+    if (existingAlbum) {
+      // Delete associated images from MongoDB
+      const images = await Image.find({ album: title });
+      for (const image of images) {
+        try {
+          await cloudinary.uploader.destroy(image.publicId); // Delete from Cloudinary
+        } catch (cloudinaryError) {
+          console.error(`Failed to delete Cloudinary image ${image.publicId}:`, cloudinaryError);
+          // Continue even if Cloudinary deletion fails
+        }
+      }
+      await Image.deleteMany({ album: title }); // Delete images from MongoDB
 
+      // Delete the existing album
+      await PastAlbum.findByIdAndDelete(existingAlbum._id);
+    }
+
+    // Create new album
     const newAlbum = await PastAlbum.create({ title });
-    res.status(201).json(newAlbum);
+    res.status(201).json({
+      message: existingAlbum ? 'Album replaced successfully' : 'Album created successfully',
+      album: {
+        _id: newAlbum._id,
+        title: newAlbum.title
+      }
+    });
   } catch (err) {
+    console.error('Error in addPastAlbum:', err);
     res.status(500).json({ error: err.message });
   }
 };
