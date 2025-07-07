@@ -16,10 +16,10 @@ try {
       // Add resource type for images
       resource_type: 'image',
       // Add transformation to optimize uploads
-      transformation: [
-        { quality: 'auto:good' },
-        { fetch_format: 'auto' }
-      ]
+      // transformation: [
+      //   { quality: 'auto:good' },
+      //   { fetch_format: 'auto' }
+      // ]
     },
   });
 
