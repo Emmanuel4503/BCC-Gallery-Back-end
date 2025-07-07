@@ -9,10 +9,9 @@ const userController = require('../controller/userController');
 
 const userRouter = express.Router();
 
-// Route to signup a new user
+
 userRouter.post("/signup", signupUser);
 
-// Route to get all users
 userRouter.get("/getall", getAllUsers);
 
 // Route to delete a user by userId
