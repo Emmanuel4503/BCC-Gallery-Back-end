@@ -49,9 +49,9 @@ const migrateImages = async () => {
 
         // Generate thumbnailUrl
         const thumbnailUrl = cloudinary.url(publicId, {
-          transformation: [
-            { width: 500, height: 500, crop: 'limit', quality: 'auto:good', fetch_format: 'auto' },
-          ],
+          // transformation: [
+          //   { width: 500, height: 500, crop: 'limit', quality: 'auto:good', fetch_format: 'auto' },
+          // ],
         });
 
         // Update the image document

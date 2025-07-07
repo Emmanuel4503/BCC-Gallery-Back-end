@@ -32,9 +32,9 @@
             const imageDocs = req.files.map(file => ({
               imageUrl: file.path,
               thumbnailUrl: cloudinary.url(file.filename, {
-                transformation: [
-                  { width: 500, height: 500, crop: 'limit', quality: 'auto:good', fetch_format: 'auto' }
-                ]
+                // transformation: [
+                //   { width: 500, height: 500, crop: 'limit', quality: 'auto:good', fetch_format: 'auto' }
+                // ]
               }),
               publicId: file.filename,
               album,

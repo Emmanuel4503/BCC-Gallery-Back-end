@@ -17,7 +17,7 @@
     const imageRouter = express.Router();
 
    
-    imageRouter.post("/upload", uploadImage.array("primaryImage"), addImage);
+    imageRouter.post("/upload", uploadImage.array('primaryImage', 100), addImage);
 
   
     imageRouter.get("/latest", getImages);
