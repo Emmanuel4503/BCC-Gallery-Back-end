@@ -15,8 +15,8 @@ app.use(cors({
     origin: [
         'https://bccgallery.netlify.app',
         'https://bccgalleryadmin.netlify.app',
-        'http://localhost:3000',
-        'http://127.0.0.1:3000'
+        'http://127.0.0.1:3000',
+        'http://localhost:5173'
     ],
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
