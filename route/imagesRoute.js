@@ -30,7 +30,7 @@
     imageRouter.get("/album/:album", getImagesByAlbum);
 
     imageRouter.post("/react", addReaction);
-    imageRouter.get('/reactions', getUserReactions);
+    imageRouter.get('/reactions/:userId ', getUserReactions);
     imageRouter.get('/count', imageController.getImageCount);
 
     module.exports = imageRouter;
