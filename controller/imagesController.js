@@ -215,21 +215,35 @@
           const getUserReactions = async (req, res) => {
             try {
               const { userId } = req.params;
+              console.log('Received request for getUserReactions:', { userId, path: req.path });
           
               if (!userId) {
+                console.log('Missing userId in request');
                 return res.status(400).json({ error: 'User ID is required.' });
               }
           
-              const reactions = await Reaction.find({ userId: Number(userId) }).select('imageId reactionType');
+              const parsedUserId = Number(userId);
+              if (isNaN(parsedUserId)) {
+                console.log('Invalid userId format:', userId);
+                return res.status(400).json({ error: 'Invalid User ID format.' });
+              }
+          
+              const reactions = await Reaction.find({ userId: parsedUserId }).select('imageId reactionType');
+              console.log('Found reactions:', reactions);
+          
               const reactionMap = reactions.reduce((acc, { imageId, reactionType }) => {
                 acc[imageId.toString()] = reactionType;
                 return acc;
               }, {});
           
-              res.status(200).json(reactionMap); // Always return a reactionMap, even if empty
+              res.status(200).json(reactionMap);
             } catch (error) {
-              console.error('Error in getUserReactions:', error);
-              res.status(500).json({ error: error.message });
+              console.error('Error in getUserReactions:', {
+                message: error.message,
+                stack: error.stack,
+                userId: req.params.userId,
+              });
+              res.status(500).json({ error: `Failed to fetch reactions: ${error.message}` });
             }
           };
 
