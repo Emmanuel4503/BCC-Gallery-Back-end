@@ -214,7 +214,7 @@
 
           const getUserReactions = async (req, res) => {
             try {
-              const { userId } = req.query;
+              const { userId } = req.params;
           
               if (!userId) {
                 return res.status(400).json({ error: 'User ID is required.' });
@@ -226,12 +226,12 @@
                 return acc;
               }, {});
           
-              res.status(200).json(reactionMap);
+              res.status(200).json(reactionMap); // Always return a reactionMap, even if empty
             } catch (error) {
+              console.error('Error in getUserReactions:', error);
               res.status(500).json({ error: error.message });
             }
           };
-
 
         // DELETE image by MongoDB _id
         const deleteImage = async (req, res) => {
